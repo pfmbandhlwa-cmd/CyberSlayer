@@ -59,7 +59,6 @@
             background-color: #991b1b;
             padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
-            float: right;
         }
         .btn-danger:hover { background-color: #7f1d1d; }
         #output {
@@ -70,20 +69,8 @@
             border-left: 4px solid #38bdf8;
             font-family: monospace;
             display: none;
+            white-space: pre-wrap;
         }
-        .port-badge {
-            display: inline-block;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            margin-right: 0.4rem;
-            margin-top: 0.4rem;
-        }
-        .port-open { background-color: #166534; color: #4ade80; }
-        .port-closed { background-color: #334155; color: #94a3b8; }
-        .audit-section { margin-top: 1rem; font-size: 0.85rem; }
-        .header-pass { color: #4ade80; }
-        .header-fail { color: #f87171; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -99,7 +86,6 @@
             font-size: 0.85rem;
         }
         th { background-color: #090d16; color: #38bdf8; }
-
         .challenge-card {
             background-color: #0f172a;
             border: 1px solid #334155;
@@ -107,52 +93,6 @@
             padding: 1.5rem;
             margin-bottom: 1.2rem;
         }
-        .badge {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin-right: 0.5rem;
-        }
-        .bg-web { background-color: #0369a1; color: #e0f2fe; }
-        .bg-network { background-color: #15803d; color: #dcfce7; }
-        .bg-crypto { background-color: #b45309; color: #fef3c7; }
-        .bg-solved { background-color: #166534; color: #4ade80; float: right; }
-        .bg-failed { background-color: #991b1b; color: #fca5a5; float: right; }
-        
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
-            margin-top: 1rem;
-        }
-        .option-btn {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            text-align: left;
-            padding: 0.8rem;
-            color: #f8fafc;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .option-btn:hover { background-color: #334155; }
-        .feedback {
-            margin-top: 1rem;
-            padding: 0.8rem;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .feedback-correct { background-color: #14532d; color: #86efac; border: 1px solid #22c55e; }
-        .feedback-wrong { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
-        .hint-box {
-            margin-top: 0.8rem;
-            font-size: 0.85rem;
-            color: #fbbf24;
-            display: none;
-        }
-
         #adminPanel {
             display: none;
             background-color: #0f172a;
@@ -166,8 +106,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
         }
-
-        /* Progress Dashboard Styling */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -192,12 +130,6 @@
             height: 100%;
             width: 0%;
             transition: width 0.4s ease-in-out;
-        }
-        .category-row {
-            margin-bottom: 0.8rem;
-        }
-        .category-row:last-child {
-            margin-bottom: 0;
         }
     </style>
 </head>
@@ -240,8 +172,10 @@
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>🎯 Cybersecurity Practice Arena</h2>
-                <button onclick="logoutAdmin()" style="background-color: #dc3545; margin-right: 10px;">Logout Admin</button>
-    <button id="toggleAdminBtn" class="btn-secondary">+ Add Challenge</button>
+                <div>
+                    <button id="logoutBtn" style="background-color: #dc3545; margin-right: 10px;">Logout Admin</button>
+                    <button id="toggleAdminBtn" class="btn-secondary">+ Add Challenge</button>
+                </div>
             </div>
             <p>Test and sharpen your cybersecurity knowledge through interactive challenges.</p>
 
@@ -338,30 +272,25 @@
                     </tr>
                 </thead>
                 <tbody id="logsTableBody">
-                    <tr><td colspan="4">Loading execution logs...</td></tr>
+                    <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 1rem;">Loading execution logs...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        function getCategoryBadge(cat) {
-            if (cat === 'Web Security') return 'bg-web';
-            if (cat === 'Network Security') return 'bg-network';
-            return 'bg-crypto';
-        }
-
         async function loadStats() {
             try {
                 const res = await fetch('/stats');
                 const data = await res.json();
                 document.getElementById('overallPerc').innerText = `${data.overall.percentage}%`;
                 if(document.getElementById('overallBar')) document.getElementById('overallBar').style.width = `${data.overall.percentage}%`;
-                if(document.getElementById('overallText')) document.getElementById('overallText').innerText = `${data.overall.solved} / ${data.overall.total} Completed`;
+                if(document.getElementById('overallCounts')) document.getElementById('overallCounts').innerText = `${data.overall.solved} / ${data.overall.total} Completed`;
                 
-                if(data.categories && document.getElementById('categoryBreakdown')) {
-                    document.getElementById('categoryBreakdown').innerHTML = Object.entries(data.categories).map(([cat, stats]) => `
-                        <div style="margin-bottom: 0.5rem; background: #1e293b; padding: 0.75rem; border-radius: 6px;">
+                const catContainer = document.getElementById('categoryStatsContainer');
+                if(data.categories && catContainer) {
+                    catContainer.innerHTML = Object.entries(data.categories).map(([cat, stats]) => `
+                        <div style="margin-bottom: 0.5rem; background: #0f172a; padding: 0.75rem; border-radius: 6px; border: 1px solid #334155;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                 <span style="color: #f8fafc; font-weight: bold;">${cat}</span>
                                 <span style="color: #94a3b8;">${stats.solved} / ${stats.total} (${stats.percentage}%)</span>
@@ -376,71 +305,55 @@
                 console.error("Error loading stats:", err);
             }
         }
-    async function loadChallenges() {
-    const container = document.getElementById("challengesContainer");
-    try {
-        const res = await fetch("/challenges");
-        const data = await res.json();
-        if (!data.challenges || data.challenges.length === 0) {
-            container.innerHTML = "<p>No challenges available.</p>";
-            return;
+
+        async function loadChallenges() {
+            const container = document.getElementById("challengesContainer");
+            try {
+                const res = await fetch("/challenges");
+                const data = await res.json();
+                if (!data.challenges || data.challenges.length === 0) {
+                    container.innerHTML = "<p>No challenges available.</p>";
+                    return;
+                }
+                container.innerHTML = data.challenges.map(item => `
+                    <div class="challenge-card" id="challenge-${item.id}">
+                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="background: #0284c7; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; color: #fff;">${item.category}</span>
+                            <span style="background: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; color: #fff;">${item.difficulty}</span>
+                            ${item.user_status === "SOLVED" ? '<span style="background: #166534; color: #dcfce7; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-left:auto;">✔ SOLVED</span>' : ''}
+                            ${item.user_status === "FAILED" ? '<span style="background: #991b1b; color: #fee2e2; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-left:auto;">✖ ATTEMPTED</span>' : ''}
+                        </div>
+                        <h3 style="margin-top:0.8rem; margin-bottom:0.4rem; color: #f8fafc;">#${item.id}. ${item.title}</h3>
+                        <p style="color:#e2e8f0; margin-bottom: 1rem;">${item.question}</p>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="A"> A) ${item.option_a}</label>
+                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="B"> B) ${item.option_b}</label>
+                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="C"> C) ${item.option_c}</label>
+                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="D"> D) ${item.option_d}</label>
+                        </div>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <button onclick="submitAnswer(${item.id})" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Submit Answer</button>
+                            <button onclick="alert('Hint: ' + ${JSON.stringify(item.hint)})" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">💡 Hint</button>
+                        </div>
+                        <div id="result_${item.id}" style="margin-top: 10px; border-radius: 5px;"></div>
+                    </div>
+                `).join("");
+            } catch (err) {
+                container.innerHTML = '<p style="color: #ef4444;">Error loading challenges.</p>';
+            }
         }
-        container.innerHTML = data.challenges.map(item => `
-            <div class="challenge-card" id="challenge-${item.id}" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="background: #0284c7; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; color: #fff;">${item.category}</span>
-                    <span style="background: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; color: #fff;">${item.difficulty}</span>
-                    ${item.user_status === "SOLVED" ? "<span style="background: #166534; color: #dcfce7; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem;">✔ SOLVED</span>" : ""}
-                    ${item.user_status === "FAILED" ? "<span style="background: #991b1b; color: #fee2e2; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem;">✖ ATTEMPTED</span>" : ""}
-                </div>
-                <h3 style="margin-top:0.8rem; margin-bottom:0.4rem; color: #f8fafc;">#${item.id}. ${item.title}</h3>
-                <p style="color:#e2e8f0; margin-bottom: 1rem;">${item.question}</p>
-                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-                    <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="A"> A) ${item.option_a}</label>
-                    <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="B"> B) ${item.option_b}</label>
-                    <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="C"> C) ${item.option_c}</label>
-                    <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="D"> D) ${item.option_d}</label>
-                </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <button onclick="submitAnswer(${item.id})" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Submit Answer</button>
-                    <button onclick="alert('Hint: ' + item.hint.replace(/'/g, "\\'") + '')" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">💡 Hint</button>
-                </div>
-                <div id="result_${item.id}" style="margin-top: 10px; border-radius: 5px;"></div>
-            </div>
-        `).join("");
-    } catch (err) {
-        container.innerHTML = "<p style="color: #ef4444;">Error loading challenges.</p>";
-    }
-}
-</script>
-
-<script>
-    window.addEventListener("DOMContentLoaded", () => {
-        if (typeof loadChallenges === "function") loadChallenges();
-        if (typeof loadStats === "function") loadStats();
-        if (typeof loadLogs === "function") loadLogs();
-    });
-</script>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if (typeof loadChallenges === "function") loadChallenges();
-        if (typeof loadStats === "function") loadStats();
-        if (typeof loadLogs === "function") loadLogs();
-    });
 
         async function loadLogs() {
             try {
                 const res = await fetch('/logs');
                 const data = await res.json();
-                const container = document.getElementById('logsContainer');
-                if (!container) return;
+                const tbody = document.getElementById('logsTableBody');
+                if (!tbody) return;
                 if (!data.logs || data.logs.length === 0) {
-                    container.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 1rem;">No execution logs found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 1rem;">No execution logs found.</td></tr>';
                     return;
                 }
-                container.innerHTML = data.logs.map(log => `
+                tbody.innerHTML = data.logs.map(log => `
                     <tr>
                         <td style="padding: 0.75rem; border-bottom: 1px solid #334155;">#${log.id}</td>
                         <td style="padding: 0.75rem; border-bottom: 1px solid #334155;">${log.target}</td>
@@ -452,17 +365,123 @@
                 console.error("Error loading logs:", err);
             }
         }
-    
-</script>
 
+        async function submitAnswer(challengeId) {
+            const selected = document.querySelector(`input[name="challenge_${challengeId}"]:checked`);
+            const resDiv = document.getElementById(`result_${challengeId}`);
+            if (!selected) {
+                alert("Please select an option first!");
+                return;
+            }
+            try {
+                const response = await fetch(`/challenges/${challengeId}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selected_option: selected.value })
+                });
+                const result = await response.json();
+                resDiv.style.display = "block";
+                if (result.correct) {
+                    resDiv.style.background = "#14532d";
+                    resDiv.style.color = "#86efac";
+                    resDiv.style.padding = "0.75rem";
+                    resDiv.innerHTML = `<strong>✔ Correct!</strong> ${result.explanation}`;
+                } else {
+                    resDiv.style.background = "#7f1d1d";
+                    resDiv.style.color = "#fca5a5";
+                    resDiv.style.padding = "0.75rem";
+                    resDiv.innerHTML = `<strong>✖ Incorrect.</strong> ${result.explanation}`;
+                }
+                loadStats();
+                loadChallenges();
+            } catch (e) {
+                console.error("Submission error:", e);
+            }
+        }
 
-<script>
-    window.onload = function() {
-        try { if (typeof loadChallenges === "function") loadChallenges(); } catch(e) {}
-        try { if (typeof loadStats === "function") loadStats(); } catch(e) {}
-        try { if (typeof loadLogs === "function") loadLogs(); } catch(e) {}
-    };
-</script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadStats();
+            loadChallenges();
+            loadLogs();
+
+            // Run scan button
+            document.getElementById("runBtn").addEventListener("click", async () => {
+                const target = document.getElementById("targetInput").value;
+                const output = document.getElementById("output");
+                output.style.display = "block";
+                output.innerText = "Running scan against " + target + "...";
+                try {
+                    const res = await fetch('/scan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target })
+                    });
+                    const data = await res.json();
+                    output.innerText = JSON.stringify(data, null, 2);
+                    loadLogs();
+                } catch (e) {
+                    output.innerText = "Scan failed: " + e;
+                }
+            });
+
+            // Toggle admin panel
+            document.getElementById("toggleAdminBtn").addEventListener("click", () => {
+                const panel = document.getElementById("adminPanel");
+                panel.style.display = panel.style.display === "block" ? "none" : "block";
+            });
+
+            // Logout admin
+            document.getElementById("logoutBtn").addEventListener("click", () => {
+                alert("Logged out from admin session.");
+            });
+
+            // Clear logs
+            document.getElementById("clearBtn").addEventListener("click", async () => {
+                try {
+                    await fetch('/logs', { method: 'DELETE' });
+                    loadLogs();
+                } catch (e) {
+                    console.error("Error clearing logs:", e);
+                }
+            });
+
+            // Add challenge form submit
+            document.getElementById("addChallengeForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const payload = {
+                    title: document.getElementById("newTitle").value,
+                    category: document.getElementById("newCategory").value,
+                    difficulty: document.getElementById("newDifficulty").value,
+                    question: document.getElementById("newQuestion").value,
+                    option_a: document.getElementById("newOptionA").value,
+                    option_b: document.getElementById("newOptionB").value,
+                    option_c: document.getElementById("newOptionC").value,
+                    option_d: document.getElementById("newOptionD").value,
+                    correct_option: document.getElementById("newCorrectOption").value,
+                    hint: document.getElementById("newHint").value,
+                    explanation: document.getElementById("newExplanation").value
+                };
+
+                try {
+                    const res = await fetch('/challenges', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        alert("Challenge added successfully!");
+                        document.getElementById("addChallengeForm").reset();
+                        document.getElementById("adminPanel").style.display = "none";
+                        loadChallenges();
+                        loadStats();
+                    } else {
+                        alert("Failed to add challenge.");
+                    }
+                } catch (err) {
+                    console.error("Error adding challenge:", err);
+                }
+            });
+        });
+    </script>
 </body>
-
 </html>

@@ -61,8 +61,15 @@ def clear_logs():
 
 @app.get("/challenges")
 def fetch_challenges():
-    return {"challenges": get_all_challenges()}
-
+    import sqlite3
+    conn = sqlite3.connect("cyberslayer.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM challenges")
+    rows = cursor.fetchall()
+    challenges = [dict(row) for row in rows]
+    conn.close()
+    return {"challenges": challenges}
 @app.get("/stats")
 def fetch_stats():
     """Endpoint for user progress dashboard metrics."""
@@ -76,12 +83,12 @@ def create_challenge(challenge: ChallengeCreate):
     new_id = add_custom_challenge(challenge.model_dump())
     return {"status": "SUCCESS", "message": "Challenge added successfully", "challenge_id": new_id}
 
-@app.post("/challenges/submit")
-def submit_answer(submission: AnswerSubmission):
+@app.post("/challenges/{challenge_id}/submit")
+def submit_answer(challenge_id: int, submission: AnswerSubmission):
     result = check_challenge_answer(submission.challenge_id, submission.selected_option)
     return result
 
 @app.post("/answer")
-def submit_answer(submission: AnswerSubmission):
+def submit_answer(challenge_id: int, submission: AnswerSubmission):
     result = check_challenge_answer(submission.challenge_id, submission.selected_option)
     return result
