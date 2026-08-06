@@ -1,12 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from src.services.ai_service import ai_service
 
 router = APIRouter(prefix="/ai-mentor", tags=["AI Mentor"])
 
 class ChatRequest(BaseModel):
     prompt: str
     challenge_context: Optional[str] = None
+
+class HintRequest(BaseModel):
+    challenge_title: str
+    category: str
+    attempt_count: int = 1
 
 @router.get("/")
 async def get_mentor_status():
@@ -17,8 +23,12 @@ async def ask_mentor(request: ChatRequest):
     if not request.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt cannot be empty.")
     
-    # Placeholder response until ai_service integration is wired up
-    return {
-        "reply": f"Mentor guidance for: '{request.prompt}'",
-        "context": request.challenge_context
-    }
+    return ai_service.get_mentor_response(request.prompt, request.challenge_context)
+
+@router.post("/hint")
+async def request_hint(request: HintRequest):
+    return ai_service.generate_hint(
+        challenge_title=request.challenge_title,
+        category=request.category,
+        attempt_count=request.attempt_count
+    )

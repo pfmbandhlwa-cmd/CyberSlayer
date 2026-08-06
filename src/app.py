@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.database import init_db
-from src.routes import challenges, scanner, ai_mentor
+from src.routes import admin, ai_mentor, auth, badges, challenges, dashboard, scanner
 
 app = FastAPI(title="CyberSlayer API")
 
@@ -15,9 +15,13 @@ init_db()
 app.mount("/static", StaticFiles(directory="web"), name="static")
 
 # Register modular routes
+app.include_router(auth.router)
 app.include_router(challenges.router)
 app.include_router(scanner.router)
 app.include_router(ai_mentor.router)
+app.include_router(dashboard.router)
+app.include_router(badges.router)
+app.include_router(admin.router)
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
