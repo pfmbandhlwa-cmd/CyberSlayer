@@ -3,47 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberSlayer Interface</title>
+    <title>CyberSlayer Diagnostic Shell & Arena</title>
     <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #090d16;
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success: #166534;
+            --danger: #991b1b;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 2rem;
             margin: 0;
         }
+
         .main-wrapper {
             display: flex;
             flex-direction: column;
             gap: 2rem;
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
         }
+
         .container {
-            background-color: #1e293b;
+            background-color: var(--bg-card);
             padding: 2rem;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
         }
-        h1, h2, h3 { color: #38bdf8; margin-top: 0; }
-        p { color: #94a3b8; font-size: 0.95rem; }
+
+        h1, h2, h3 { color: var(--accent); margin-top: 0; }
+        p { color: var(--text-muted); font-size: 0.95rem; }
+
         input[type="text"], select, textarea {
             width: 100%;
             padding: 0.7rem;
             border-radius: 6px;
-            border: 1px solid #334155;
-            background-color: #0f172a;
-            color: #f8fafc;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-input);
+            color: var(--text-main);
             font-size: 0.95rem;
             box-sizing: border-box;
             margin-top: 0.4rem;
             margin-bottom: 0.8rem;
         }
+
         button {
-            background-color: #0284c7;
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 0.7rem 1.4rem;
@@ -52,81 +72,88 @@
             cursor: pointer;
             transition: background 0.2s ease-in-out;
         }
-        button:hover { background-color: #0369a1; }
-        .btn-secondary { background-color: #334155; }
+
+        button:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: var(--border-color); }
         .btn-secondary:hover { background-color: #475569; }
-        .btn-danger {
-            background-color: #991b1b;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-        }
+        .btn-danger { background-color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem; }
         .btn-danger:hover { background-color: #7f1d1d; }
+
         #output {
             margin-top: 1.5rem;
             padding: 1rem;
-            background-color: #090d16;
+            background-color: var(--bg-input);
             border-radius: 6px;
-            border-left: 4px solid #38bdf8;
+            border-left: 4px solid var(--accent);
             font-family: monospace;
             display: none;
             white-space: pre-wrap;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            background-color: #0f172a;
+            background-color: var(--bg-main);
             border-radius: 8px;
             overflow: hidden;
         }
+
         th, td {
             padding: 0.75rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid var(--border-color);
             font-size: 0.85rem;
         }
-        th { background-color: #090d16; color: #38bdf8; }
+        th { background-color: var(--bg-input); color: var(--accent); }
+
         .challenge-card {
-            background-color: #0f172a;
-            border: 1px solid #334155;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1.2rem;
         }
+
         #adminPanel {
             display: none;
-            background-color: #0f172a;
-            border: 1px solid #38bdf8;
+            background-color: var(--bg-main);
+            border: 1px solid var(--accent);
             padding: 1.5rem;
             border-radius: 8px;
             margin-top: 1rem;
         }
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
         }
+
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 1.5rem;
             margin-top: 1rem;
         }
+
         .stat-card {
-            background-color: #0f172a;
-            border: 1px solid #334155;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1.25rem;
         }
+
         .progress-bar-bg {
-            background-color: #334155;
+            background-color: var(--border-color);
             height: 10px;
             border-radius: 5px;
             overflow: hidden;
             margin-top: 0.4rem;
         }
+
         .progress-bar-fill {
-            background-color: #38bdf8;
+            background-color: var(--accent);
             height: 100%;
             width: 0%;
             transition: width 0.4s ease-in-out;
@@ -135,21 +162,22 @@
 </head>
 <body>
     <div class="main-wrapper">
+        
         <!-- Diagnostic Engine -->
-        <div class="container">
+        <section class="container">
             <h1>🛡️ CyberSlayer Diagnostic Scanner</h1>
             <p>Active Host Security Assessment Tool</p>
             
             <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="targetInput" placeholder="Enter domain (e.g., example.com)" value="example.com" style="margin:0; width:75%;" />
+                <input type="text" id="targetInput" placeholder="Enter domain or target IP (e.g., example.com)" value="127.0.0.1" style="margin:0; width:75%;" />
                 <button id="runBtn">Run Scan</button>
             </div>
 
             <div id="output"></div>
-        </div>
+        </section>
 
         <!-- Progress Dashboard -->
-        <div class="container">
+        <section class="container">
             <h2>📊 Progress Dashboard</h2>
             <div class="stats-grid">
                 <div class="stat-card" style="text-align: center;">
@@ -166,14 +194,14 @@
                     <div id="categoryStatsContainer">Loading category stats...</div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Practice Arena -->
-        <div class="container">
+        <section class="container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>🎯 Cybersecurity Practice Arena</h2>
                 <div>
-                    <button id="logoutBtn" style="background-color: #dc3545; margin-right: 10px;">Logout Admin</button>
+                    <button id="logoutBtn" class="btn-secondary" style="margin-right: 10px;">Admin Actions</button>
                     <button id="toggleAdminBtn" class="btn-secondary">+ Add Challenge</button>
                 </div>
             </div>
@@ -185,11 +213,11 @@
                 <form id="addChallengeForm">
                     <div class="form-row">
                         <div>
-                            <label>Title</label>
+                            <label for="newTitle">Title</label>
                             <input type="text" id="newTitle" placeholder="e.g. CSRF Token Protection" required />
                         </div>
                         <div>
-                            <label>Category</label>
+                            <label for="newCategory">Category</label>
                             <select id="newCategory">
                                 <option value="Web Security">Web Security</option>
                                 <option value="Network Security">Network Security</option>
@@ -200,7 +228,7 @@
 
                     <div class="form-row">
                         <div>
-                            <label>Difficulty</label>
+                            <label for="newDifficulty">Difficulty</label>
                             <select id="newDifficulty">
                                 <option value="Beginner">Beginner</option>
                                 <option value="Intermediate">Intermediate</option>
@@ -208,7 +236,7 @@
                             </select>
                         </div>
                         <div>
-                            <label>Correct Option</label>
+                            <label for="newCorrectOption">Correct Option</label>
                             <select id="newCorrectOption">
                                 <option value="A">Option A</option>
                                 <option value="B">Option B</option>
@@ -218,46 +246,46 @@
                         </div>
                     </div>
 
-                    <label>Question Text</label>
+                    <label for="newQuestion">Question Text</label>
                     <textarea id="newQuestion" rows="2" placeholder="Enter the question text..." required></textarea>
 
                     <div class="form-row">
                         <div>
-                            <label>Option A</label>
+                            <label for="newOptionA">Option A</label>
                             <input type="text" id="newOptionA" required />
                         </div>
                         <div>
-                            <label>Option B</label>
+                            <label for="newOptionB">Option B</label>
                             <input type="text" id="newOptionB" required />
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div>
-                            <label>Option C</label>
+                            <label for="newOptionC">Option C</label>
                             <input type="text" id="newOptionC" required />
                         </div>
                         <div>
-                            <label>Option D</label>
+                            <label for="newOptionD">Option D</label>
                             <input type="text" id="newOptionD" required />
                         </div>
                     </div>
 
-                    <label>Hint</label>
+                    <label for="newHint">Hint</label>
                     <input type="text" id="newHint" placeholder="Short clue for the user..." required />
 
-                    <label>Explanation</label>
+                    <label for="newExplanation">Explanation</label>
                     <textarea id="newExplanation" rows="2" placeholder="Detailed answer explanation..." required></textarea>
 
-                    <button type="submit" style="background-color: #166534; width:100%; margin-top:0.5rem;">Save Challenge to SQLite</button>
+                    <button type="submit" style="background-color: var(--success); width:100%; margin-top:0.5rem;">Save Challenge to SQLite Database</button>
                 </form>
             </div>
 
             <div id="challengesContainer" style="margin-top: 1rem;">Loading practice challenges...</div>
-        </div>
+        </section>
 
         <!-- Log History -->
-        <div class="container">
+        <section class="container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>📜 Execution History</h3>
                 <button id="clearBtn" class="btn-danger">Clear Logs</button>
@@ -275,213 +303,19 @@
                     <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 1rem;">Loading execution logs...</td></tr>
                 </tbody>
             </table>
-        </div>
+        </section>
     </div>
 
-    <script>
-        async function loadStats() {
-            try {
-                const res = await fetch('/stats');
-                const data = await res.json();
-                document.getElementById('overallPerc').innerText = `${data.overall.percentage}%`;
-                if(document.getElementById('overallBar')) document.getElementById('overallBar').style.width = `${data.overall.percentage}%`;
-                if(document.getElementById('overallCounts')) document.getElementById('overallCounts').innerText = `${data.overall.solved} / ${data.overall.total} Completed`;
-                
-                const catContainer = document.getElementById('categoryStatsContainer');
-                if(data.categories && catContainer) {
-                    catContainer.innerHTML = Object.entries(data.categories).map(([cat, stats]) => `
-                        <div style="margin-bottom: 0.5rem; background: #0f172a; padding: 0.75rem; border-radius: 6px; border: 1px solid #334155;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                                <span style="color: #f8fafc; font-weight: bold;">${cat}</span>
-                                <span style="color: #94a3b8;">${stats.solved} / ${stats.total} (${stats.percentage}%)</span>
-                            </div>
-                            <div style="background: #334155; height: 6px; border-radius: 3px; overflow: hidden;">
-                                <div style="background: #0284c7; width: ${stats.percentage}%; height: 100%;"></div>
-                            </div>
-                        </div>
-                    `).join("");
-                }
-            } catch (err) {
-                console.error("Error loading stats:", err);
-            }
-        }
-
-        async function loadChallenges() {
-            const container = document.getElementById("challengesContainer");
-            try {
-                const res = await fetch("/challenges");
-                const data = await res.json();
-                if (!data.challenges || data.challenges.length === 0) {
-                    container.innerHTML = "<p>No challenges available.</p>";
-                    return;
-                }
-                container.innerHTML = data.challenges.map(item => `
-                    <div class="challenge-card" id="challenge-${item.id}">
-                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="background: #0284c7; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; color: #fff;">${item.category}</span>
-                            <span style="background: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; color: #fff;">${item.difficulty}</span>
-                            ${item.user_status === "SOLVED" ? '<span style="background: #166534; color: #dcfce7; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-left:auto;">✔ SOLVED</span>' : ''}
-                            ${item.user_status === "FAILED" ? '<span style="background: #991b1b; color: #fee2e2; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-left:auto;">✖ ATTEMPTED</span>' : ''}
-                        </div>
-                        <h3 style="margin-top:0.8rem; margin-bottom:0.4rem; color: #f8fafc;">#${item.id}. ${item.title}</h3>
-                        <p style="color:#e2e8f0; margin-bottom: 1rem;">${item.question}</p>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="A"> A) ${item.option_a}</label>
-                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="B"> B) ${item.option_b}</label>
-                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="C"> C) ${item.option_c}</label>
-                            <label style="color: #cbd5e1; cursor: pointer;"><input type="radio" name="challenge_${item.id}" value="D"> D) ${item.option_d}</label>
-                        </div>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <button onclick="submitAnswer(${item.id})" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Submit Answer</button>
-                            <button onclick="alert('Hint: ' + ${JSON.stringify(item.hint)})" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">💡 Hint</button>
-                        </div>
-                        <div id="result_${item.id}" style="margin-top: 10px; border-radius: 5px;"></div>
-                    </div>
-                `).join("");
-            } catch (err) {
-                container.innerHTML = '<p style="color: #ef4444;">Error loading challenges.</p>';
-            }
-        }
-
-        async function loadLogs() {
-            try {
-                const res = await fetch('/logs');
-                const data = await res.json();
-                const tbody = document.getElementById('logsTableBody');
-                if (!tbody) return;
-                if (!data.logs || data.logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 1rem;">No execution logs found.</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = data.logs.map(log => `
-                    <tr>
-                        <td style="padding: 0.75rem; border-bottom: 1px solid #334155;">#${log.id}</td>
-                        <td style="padding: 0.75rem; border-bottom: 1px solid #334155;">${log.target}</td>
-                        <td style="padding: 0.75rem; border-bottom: 1px solid #334155;"><span style="color: ${log.status === 'SUCCESS' ? '#4ade80' : '#f87171'}">${log.status}</span></td>
-                        <td style="padding: 0.75rem; border-bottom: 1px solid #334155; color: #94a3b8;">${log.timestamp}</td>
-                    </tr>
-                `).join("");
-            } catch (err) {
-                console.error("Error loading logs:", err);
-            }
-        }
-
-        async function submitAnswer(challengeId) {
-            const selected = document.querySelector(`input[name="challenge_${challengeId}"]:checked`);
-            const resDiv = document.getElementById(`result_${challengeId}`);
-            if (!selected) {
-                alert("Please select an option first!");
-                return;
-            }
-            try {
-                const response = await fetch(`/challenges/${challengeId}/submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ selected_option: selected.value })
-                });
-                const result = await response.json();
-                resDiv.style.display = "block";
-                if (result.correct) {
-                    resDiv.style.background = "#14532d";
-                    resDiv.style.color = "#86efac";
-                    resDiv.style.padding = "0.75rem";
-                    resDiv.innerHTML = `<strong>✔ Correct!</strong> ${result.explanation}`;
-                } else {
-                    resDiv.style.background = "#7f1d1d";
-                    resDiv.style.color = "#fca5a5";
-                    resDiv.style.padding = "0.75rem";
-                    resDiv.innerHTML = `<strong>✖ Incorrect.</strong> ${result.explanation}`;
-                }
-                loadStats();
-                loadChallenges();
-            } catch (e) {
-                console.error("Submission error:", e);
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadStats();
-            loadChallenges();
-            loadLogs();
-
-            // Run scan button
-            document.getElementById("runBtn").addEventListener("click", async () => {
-                const target = document.getElementById("targetInput").value;
-                const output = document.getElementById("output");
-                output.style.display = "block";
-                output.innerText = "Running scan against " + target + "...";
-                try {
-                    const res = await fetch('/scan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ target })
-                    });
-                    const data = await res.json();
-                    output.innerText = JSON.stringify(data, null, 2);
-                    loadLogs();
-                } catch (e) {
-                    output.innerText = "Scan failed: " + e;
-                }
-            });
-
-            // Toggle admin panel
-            document.getElementById("toggleAdminBtn").addEventListener("click", () => {
-                const panel = document.getElementById("adminPanel");
-                panel.style.display = panel.style.display === "block" ? "none" : "block";
-            });
-
-            // Logout admin
-            document.getElementById("logoutBtn").addEventListener("click", () => {
-                alert("Logged out from admin session.");
-            });
-
-            // Clear logs
-            document.getElementById("clearBtn").addEventListener("click", async () => {
-                try {
-                    await fetch('/logs', { method: 'DELETE' });
-                    loadLogs();
-                } catch (e) {
-                    console.error("Error clearing logs:", e);
-                }
-            });
-
-            // Add challenge form submit
-            document.getElementById("addChallengeForm").addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const payload = {
-                    title: document.getElementById("newTitle").value,
-                    category: document.getElementById("newCategory").value,
-                    difficulty: document.getElementById("newDifficulty").value,
-                    question: document.getElementById("newQuestion").value,
-                    option_a: document.getElementById("newOptionA").value,
-                    option_b: document.getElementById("newOptionB").value,
-                    option_c: document.getElementById("newOptionC").value,
-                    option_d: document.getElementById("newOptionD").value,
-                    correct_option: document.getElementById("newCorrectOption").value,
-                    hint: document.getElementById("newHint").value,
-                    explanation: document.getElementById("newExplanation").value
-                };
-
-                try {
-                    const res = await fetch('/challenges', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (res.ok) {
-                        alert("Challenge added successfully!");
-                        document.getElementById("addChallengeForm").reset();
-                        document.getElementById("adminPanel").style.display = "none";
-                        loadChallenges();
-                        loadStats();
-                    } else {
-                        alert("Failed to add challenge.");
-                    }
-                } catch (err) {
-                    console.error("Error adding challenge:", err);
-                }
-            });
-        });
-    </script>
+    <!-- Application Module Entry Point -->
+    <script type="module" src="/static/js/app.js"></script>
+    <!-- Script dependencies from web/js -->
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/challenges.js"></script>
+    <script src="/static/js/scanner.js"></script>
+    <script src="/static/js/admin.js"></script>
+    <script src="/static/js/ai_mentor.js"></script>
+</body>
+</html>
 </body>
 </html>

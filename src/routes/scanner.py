@@ -3,6 +3,24 @@ import ssl
 import urllib.request
 from datetime import datetime
 
+from fastapi import APIRouter
+from src.services.scanner_service import scanner_service
+
+router = APIRouter(tags=["Scanner & Diagnostics"])
+
+@router.get("/run")
+def run_diagnostic(target: str = "127.0.0.1"):
+    return {"result": scanner_service.execute_scan(target)}
+
+@router.get("/logs")
+def fetch_logs():
+    return {"logs": scanner_service.get_logs()}
+
+@router.delete("/logs")
+def clear_logs():
+    scanner_service.clear_logs()
+    return {"message": "Execution history cleared successfully"}
+
 COMMON_PORTS = {
     21: "FTP",
     22: "SSH",

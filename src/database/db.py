@@ -7,6 +7,15 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_all_challenges_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM challenges")
+    rows = cursor.fetchall()
+    challenges = [dict(row) for row in rows]
+    conn.close()
+    return challenges
+
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -217,7 +226,6 @@ def get_challenge_stats():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Overall total and solved
     cursor.execute("""
         SELECT 
             COUNT(*) as total,
@@ -230,7 +238,6 @@ def get_challenge_stats():
     solved = overall['solved'] or 0
     overall_percentage = round((solved / total) * 100) if total > 0 else 0
 
-    # Category breakdown
     cursor.execute("""
         SELECT 
             c.category,
