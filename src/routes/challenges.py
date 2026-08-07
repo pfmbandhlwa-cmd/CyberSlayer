@@ -1,29 +1,50 @@
 from fastapi import APIRouter, HTTPException
-from src.models.challenge import AnswerSubmission, ChallengeCreate
-from src.services.challenge_service import challenge_service
+from pydantic import BaseModel
+from typing import List
 
-router = APIRouter(tags=["Challenges"])
+router = APIRouter(prefix="/challenges", tags=["Challenges"])
 
-@router.get("/challenges")
-def fetch_challenges():
-    return {"challenges": challenge_service.list_challenges()}
+CHALLENGES_DB = [
+    {
+        "id": 1,
+        "title": "SQLi Authentication Bypass",
+        "category": "sqli",
+        "difficulty": "Easy",
+        "points": 100,
+        "description": "Bypass the login form by exploiting vulnerable payload input fields.",
+        "solved": False
+    },
+    {
+        "id": 2,
+        "title": "Reflected XSS Search Portal",
+        "category": "xss",
+        "difficulty": "Medium",
+        "points": 250,
+        "description": "Inject an executable script parameter into the search query.",
+        "solved": False
+    },
+    {
+        "id": 3,
+        "title": "Base64 Header Decoder",
+        "category": "crypto",
+        "difficulty": "Easy",
+        "points": 100,
+        "description": "Extract and decode the encoded secret key stored in the response header.",
+        "solved": False
+    }
+]
 
-@router.get("/stats")
-def fetch_stats():
-    return challenge_service.get_stats()
+class FlagSubmission(BaseModel):
+    flag: str
 
-@router.post("/challenges")
-def create_challenge(challenge: ChallengeCreate):
-    if challenge.correct_option.upper() not in ["A", "B", "C", "D"]:
-        raise HTTPException(status_code=400, detail="Correct option must be A, B, C, or D")
-        
-    new_id = challenge_service.create(challenge.model_dump())
-    return {"status": "SUCCESS", "message": "Challenge added successfully", "challenge_id": new_id}
+@router.get("/")
+async def list_challenges():
+    return {"status": "success", "challenges": CHALLENGES_DB}
 
-@router.post("/challenges/{challenge_id}/submit")
-def submit_answer(challenge_id: int, submission: AnswerSubmission):
-    return challenge_service.verify_answer(submission.challenge_id, submission.selected_option)
-
-@router.post("/answer")
-def submit_answer_legacy(challenge_id: int, submission: AnswerSubmission):
-    return challenge_service.verify_answer(submission.challenge_id, submission.selected_option)
+@router.post("/{challenge_id}/submit")
+async def submit_flag(challenge_id: int, payload: FlagSubmission):
+    # Validates flag against target challenge pattern
+    expected_flag = f"cyber{{flag_{challenge_id}_solved}}"
+    if payload.flag.strip() == expected_flag:
+        return {"status": "success", "correct": True, "message": "Flag captured! Points added."}
+    return {"status": "incorrect", "correct": False, "message": "Invalid flag format or value."}
