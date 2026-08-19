@@ -1,9 +1,3 @@
-from .db import (
-    engine, SessionLocal, Base, get_db, init_db,
-    log_execution, get_all_logs, clear_all_logs
-)
+from .db import get_connection, create_tables
 
-__all__ = [
-    "engine", "SessionLocal", "Base", "get_db", "init_db",
-    "log_execution", "get_all_logs", "clear_all_logs"
-]
+__all__ = ["get_connection", "create_tables"]

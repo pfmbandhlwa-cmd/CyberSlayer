@@ -1,50 +1,53 @@
-import os
-from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+import sqlite3
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cyberslayer.db")
+DATABASE = "cyberslayer.db"
 
-engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
-)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+def get_connection():
+    """Create and return a connection to the CyberSlayer database."""
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+    return connection
 
-# Scanner execution log storage
-EXECUTION_LOGS = []
 
-def log_execution(target: str, scan_type: str, status: str = "completed", details: str = ""):
-    log_entry = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "target": target,
-        "scan_type": scan_type,
-        "status": status,
-        "details": details
-    }
-    EXECUTION_LOGS.append(log_entry)
-    return log_entry
+def create_tables():
+    """Create all required database tables if they don't already exist."""
+    connection = get_connection()
 
-def get_all_logs():
-    return EXECUTION_LOGS
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS challenges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            question TEXT NOT NULL,
+            option_a TEXT NOT NULL,
+            option_b TEXT NOT NULL,
+            option_c TEXT NOT NULL,
+            option_d TEXT NOT NULL,
+            correct_answer TEXT NOT NULL,
+            category TEXT NOT NULL,
+            difficulty TEXT NOT NULL,
+            points INTEGER NOT NULL
+        )
+    """)
 
-def clear_all_logs():
-    EXECUTION_LOGS.clear()
-    return True
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            score INTEGER DEFAULT 0
+        )
+    """)
 
-def get_db():
-    """Dependency that provides a database session per request."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS user_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            challenge_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (challenge_id) REFERENCES challenges (id),
+            UNIQUE(user_id, challenge_id)
+        )
+    """)
 
-def init_db():
-    """Imports ORM models and creates all tables in SQLite."""
-    import src.models.challenge
-    import src.models.user
-    import src.models.progress
-    Base.metadata.create_all(bind=engine)
+    connection.commit()
+    connection.close()
