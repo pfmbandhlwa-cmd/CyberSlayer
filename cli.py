@@ -28,15 +28,42 @@ def display_header(user):
     console.print(Panel(title, style="bold blue", expand=False))
 
 
-def list_challenges(conn, user):
+def choose_category_filter(conn):
+    """Fetch available categories from the database and prompt user to filter."""
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM challenges")
+    cursor.execute("SELECT DISTINCT category FROM challenges ORDER BY category ASC")
+    categories = [row["category"] for row in cursor.fetchall()]
+
+    console.print("\n[bold cyan]Select Category Filter:[/bold cyan]")
+    console.print("[0] 🌐 All Categories")
+    for idx, cat in enumerate(categories, start=1):
+        console.print(f"[{idx}] 📁 {cat}")
+
+    try:
+        choice = IntPrompt.ask("\nChoose category option", default=0)
+        if choice == 0 or choice > len(categories):
+            return None
+        return categories[choice - 1]
+    except Exception:
+        return None
+
+
+def list_challenges(conn, user, category_filter=None):
+    cursor = conn.cursor()
+
+    if category_filter:
+        cursor.execute("SELECT * FROM challenges WHERE category = ?", (category_filter,))
+        title_text = f"Available Challenges — [yellow]{category_filter}[/yellow]"
+    else:
+        cursor.execute("SELECT * FROM challenges")
+        title_text = "Available Challenges — [yellow]All Categories[/yellow]"
+
     challenges = cursor.fetchall()
 
     cursor.execute("SELECT challenge_id FROM user_progress WHERE user_id = ?", (user["id"],))
     solved_ids = {row["challenge_id"] for row in cursor.fetchall()}
 
-    table = Table(title="Available Challenges", header_style="bold magenta", border_style="dim white")
+    table = Table(title=title_text, header_style="bold magenta", border_style="dim white")
     table.add_column("ID", justify="center", style="cyan")
     table.add_column("Title", style="bold white")
     table.add_column("Category", style="yellow")
@@ -55,8 +82,12 @@ def list_challenges(conn, user):
     return challenges, solved_ids
 
 
-def attempt_challenge(conn, user):
-    challenges, solved_ids = list_challenges(conn, user)
+def attempt_challenge(conn, user, category_filter=None):
+    challenges, solved_ids = list_challenges(conn, user, category_filter)
+    if not challenges:
+        console.print("[bold yellow]No challenges found for this filter.[/bold yellow]")
+        return
+
     try:
         cid = IntPrompt.ask("\n[bold cyan]Select Challenge ID to play[/bold cyan]")
     except Exception:
@@ -81,7 +112,7 @@ def attempt_challenge(conn, user):
         f"[cyan]C)[/cyan] {ch['option_c']}\n"
         f"[cyan]D)[/cyan] {ch['option_d']}"
     )
-    console.print(Panel(question_text, title=f"📋 {ch['title']} ({ch['points']} PTS)", style="cyan"))
+    console.print(Panel(question_text, title=f"📋 {ch['title']} ({ch['category']} - {ch['points']} PTS)", style="cyan"))
 
     answer = Prompt.ask("Your answer", choices=["A", "B", "C", "D"], case_sensitive=False).upper()
 
@@ -94,7 +125,6 @@ def attempt_challenge(conn, user):
     else:
         console.print(Panel(f"[bold red]❌ Incorrect. The correct answer was {ch['correct_answer']}.[/bold red]", style="red"))
 
-    # Display explanation regardless of correctness
     if ch["explanation"]:
         console.print(Panel(f"[italic white]{ch['explanation']}[/italic white]", title="💡 Explanation", style="magenta"))
 
@@ -109,16 +139,18 @@ def main():
             user = get_or_create_user(conn)
             display_header(user)
 
-            console.print("[1] List Challenges")
+            console.print("[1] List Challenges (All or Filtered)")
             console.print("[2] Answer Challenge")
             console.print("[3] Exit\n")
 
             choice = Prompt.ask("Select an option", choices=["1", "2", "3"])
 
             if choice == "1":
-                list_challenges(conn, user)
+                cat = choose_category_filter(conn)
+                list_challenges(conn, user, cat)
             elif choice == "2":
-                attempt_challenge(conn, user)
+                cat = choose_category_filter(conn)
+                attempt_challenge(conn, user, cat)
             elif choice == "3":
                 console.print("[bold red]Goodbye, CyberSlayer![/bold red]")
                 break
