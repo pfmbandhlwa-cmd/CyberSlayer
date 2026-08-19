@@ -1,7 +1,12 @@
 import sys
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.prompt import Prompt, IntPrompt
 from src.services.ai_service import ai_service
 
-# Temporary CLI session state
+console = Console()
+
 user_profile = {"username": "CyberSlayer", "score": 0, "solved": set()}
 
 CHALLENGES = {
@@ -31,83 +36,96 @@ CHALLENGES = {
     }
 }
 
-def display_menu():
-    print("\n" + "="*40)
-    print(f" 🗡️  CYBERSLAYER CLI | Score: {user_profile['score']} PTS")
-    print("="*40)
-    print("[1] View Active Challenges")
-    print("[2] Submit Challenge Flag")
-    print("[3] Ask AI Mentor for Hint")
-    print("[4] View Profile & Stats")
-    print("[5] Exit")
-    print("="*40)
+def display_header():
+    title = f"[bold cyan]🗡️  CYBERSLAYER CLI[/bold cyan]  |  Score: [bold green]{user_profile['score']} PTS[/bold green]"
+    console.print(Panel(title, style="bold blue", expand=False))
 
 def list_challenges():
-    print("\n--- AVAILABLE CHALLENGES ---")
+    table = Table(title="Available Challenges", header_style="bold magenta", border_style="dim white")
+    table.add_column("ID", justify="center", style="cyan", no_wrap=True)
+    table.add_column("Title", style="bold white")
+    table.add_column("Category", style="yellow")
+    table.add_column("Status / Points", justify="center")
+    table.add_column("Description", style="dim white")
+
     for cid, ch in CHALLENGES.items():
-        status = "✅ SOLVED" if cid in user_profile["solved"] else f"🔒 {ch['points']} PTS"
-        print(f"[{cid}] {ch['title']} ({ch['category'].upper()}) - {status}")
-        print(f"    {ch['desc']}")
+        if cid in user_profile["solved"]:
+            status = "[bold green]✅ SOLVED[/bold green]"
+        else:
+            status = f"[bold gold1]🔒 {ch['points']} PTS[/bold gold1]"
+        
+        table.add_row(str(cid), ch["title"], ch["category"].upper(), status, ch["desc"])
+
+    console.print(table)
 
 def submit_flag():
     list_challenges()
     try:
-        cid = int(input("\nEnter Challenge ID to submit flag: "))
-        if cid not in CHALLENGES:
-            print("❌ Invalid Challenge ID.")
-            return
+        cid = IntPrompt.ask("\n[bold cyan]Enter Challenge ID to submit flag[/bold cyan]")
+    except Exception:
+        return
 
-        if cid in user_profile["solved"]:
-            print("⚠️ You already solved this challenge!")
-            return
+    if cid not in CHALLENGES:
+        console.print("[bold red]❌ Invalid Challenge ID.[/bold red]")
+        return
 
-        ch = CHALLENGES[cid]
-        flag_input = input(f"Enter flag for '{ch['title']}': ").strip()
+    if cid in user_profile["solved"]:
+        console.print("[bold yellow]⚠️ You already solved this challenge![/bold yellow]")
+        return
 
-        if flag_input == ch["flag"]:
-            user_profile["score"] += ch["points"]
-            user_profile["solved"].add(cid)
-            print(f"\n🎉 CORRECT! You earned +{ch['points']} PTS!")
-        else:
-            ch["attempts"] += 1
-            print("\n❌ Incorrect flag.")
-            # Auto-suggest AI feedback on failed attempt
-            feedback = ai_service.analyze_attempt(ch["title"], flag_input, ch["category"])
-            print(f"💡 AI Mentor Feedback: {feedback['feedback']}")
-    except ValueError:
-        print("❌ Please enter a valid number.")
+    ch = CHALLENGES[cid]
+    flag_input = Prompt.ask(f"[bold white]Enter flag for '[cyan]{ch['title']}[/cyan]'[/bold white]").strip()
+
+    if flag_input == ch["flag"]:
+        user_profile["score"] += ch["points"]
+        user_profile["solved"].add(cid)
+        console.print(Panel(f"[bold green]🎉 CORRECT! You earned +{ch['points']} PTS![/bold green]", style="green", title="Success"))
+    else:
+        ch["attempts"] += 1
+        console.print("[bold red]❌ Incorrect flag.[/bold red]")
+        feedback = ai_service.analyze_attempt(ch["title"], flag_input, ch["category"])
+        console.print(Panel(f"[italic white]{feedback['feedback']}[/italic white]", title="💡 AI Mentor Feedback", style="magenta"))
 
 def request_hint():
     list_challenges()
     try:
-        cid = int(input("\nEnter Challenge ID for a hint: "))
-        if cid not in CHALLENGES:
-            print("❌ Invalid Challenge ID.")
-            return
+        cid = IntPrompt.ask("\n[bold cyan]Enter Challenge ID for a hint[/bold cyan]")
+    except Exception:
+        return
 
-        ch = CHALLENGES[cid]
-        ch["attempts"] += 1
-        hint_data = ai_service.generate_hint(
-            challenge_title=ch["title"],
-            category=ch["category"],
-            attempt_count=ch["attempts"]
-        )
-        print(f"\n{hint_data['hint']}")
-    except ValueError:
-        print("❌ Please enter a valid number.")
+    if cid not in CHALLENGES:
+        console.print("[bold red]❌ Invalid Challenge ID.[/bold red]")
+        return
+
+    ch = CHALLENGES[cid]
+    ch["attempts"] += 1
+    hint_data = ai_service.generate_hint(
+        challenge_title=ch["title"],
+        category=ch["category"],
+        attempt_count=ch["attempts"]
+    )
+    console.print(Panel(f"[italic yellow]{hint_data['hint']}[/italic yellow]", title="💡 AI Hint", style="yellow"))
 
 def view_profile():
-    print("\n--- USER PROFILE ---")
-    print(f"Username:       {user_profile['username']}")
-    print(f"Total Score:    {user_profile['score']} PTS")
-    print(f"Solved Count:   {len(user_profile['solved'])} / {len(CHALLENGES)}")
     rank = "Novice" if user_profile["score"] < 200 else "Cyber Slayer"
-    print(f"Current Rank:   {rank}")
+    profile_text = (
+        f"[bold]Username:[/bold]     {user_profile['username']}\n"
+        f"[bold]Total Score:[/bold]  [bold green]{user_profile['score']} PTS[/bold green]\n"
+        f"[bold]Solved Count:[/bold] {len(user_profile['solved'])} / {len(CHALLENGES)}\n"
+        f"[bold]Current Rank:[/bold] [bold cyan]{rank}[/bold cyan]"
+    )
+    console.print(Panel(profile_text, title="👤 User Profile", style="cyan", expand=False))
 
 def main():
     while True:
-        display_menu()
-        choice = input("Select an option (1-5): ").strip()
+        display_header()
+        console.print("[1] View Active Challenges")
+        console.print("[2] Submit Challenge Flag")
+        console.print("[3] Ask AI Mentor for Hint")
+        console.print("[4] View Profile & Stats")
+        console.print("[5] Exit\n")
+        
+        choice = Prompt.ask("Select an option", choices=["1", "2", "3", "4", "5"])
         
         if choice == "1":
             list_challenges()
@@ -118,10 +136,8 @@ def main():
         elif choice == "4":
             view_profile()
         elif choice == "5":
-            print("\nGoodbye, CyberSlayer!")
+            console.print("[bold red]Goodbye, CyberSlayer![/bold red]")
             sys.exit(0)
-        else:
-            print("❌ Invalid choice. Try again.")
 
 if __name__ == "__main__":
     main()
