@@ -94,6 +94,10 @@ def attempt_challenge(conn, user):
     else:
         console.print(Panel(f"[bold red]❌ Incorrect. The correct answer was {ch['correct_answer']}.[/bold red]", style="red"))
 
+    # Display explanation regardless of correctness
+    if ch["explanation"]:
+        console.print(Panel(f"[italic white]{ch['explanation']}[/italic white]", title="💡 Explanation", style="magenta"))
+
 
 def main():
     create_tables()

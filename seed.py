@@ -16,7 +16,8 @@ def seed_challenges():
             "B",
             "Social Engineering",
             "Beginner",
-            10
+            10,
+            "Phishing uses social engineering tactics to manipulate individuals into disclosing personal information like credentials or banking details."
         ),
         (
             "HTTPS",
@@ -28,7 +29,8 @@ def seed_challenges():
             "B",
             "Web Security",
             "Beginner",
-            10
+            10,
+            "HTTPS leverages TLS/SSL protocols to encrypt traffic in transit, preventing eavesdropping and tampered network data."
         ),
         (
             "SQL Injection",
@@ -40,7 +42,8 @@ def seed_challenges():
             "A",
             "Web Security",
             "Beginner",
-            10
+            10,
+            "SQL Injection occurs when unsanitized user input is concatenated directly into SQL queries, altering command execution."
         ),
         (
             "Firewalls",
@@ -52,7 +55,8 @@ def seed_challenges():
             "B",
             "Network Security",
             "Beginner",
-            10
+            10,
+            "Firewalls monitor and enforce security policies on incoming and outgoing network traffic based on predefined rules."
         ),
         (
             "MFA",
@@ -64,7 +68,8 @@ def seed_challenges():
             "B",
             "Authentication",
             "Beginner",
-            10
+            10,
+            "Multi-Factor Authentication requires two or more verification factors to gain access, drastically improving security over password-only logins."
         )
     ]
 
@@ -80,14 +85,15 @@ def seed_challenges():
                 correct_answer,
                 category,
                 difficulty,
-                points
+                points,
+                explanation
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, challenge)
 
     connection.commit()
     connection.close()
-    print("✅ Challenges seeded successfully!")
+    print("✅ Challenges seeded with explanations successfully!")
 
 
 if __name__ == "__main__":

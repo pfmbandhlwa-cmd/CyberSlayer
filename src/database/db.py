@@ -26,7 +26,8 @@ def create_tables():
             correct_answer TEXT NOT NULL,
             category TEXT NOT NULL,
             difficulty TEXT NOT NULL,
-            points INTEGER NOT NULL
+            points INTEGER NOT NULL,
+            explanation TEXT
         )
     """)
 
